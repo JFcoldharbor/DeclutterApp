@@ -1,0 +1,40 @@
+# Declutter configuration (YAML). Every field is optional; omitted fields
+# fall back to built-in defaults. Paths starting with ~ expand to your home.
+
+sources:
+  - ~/Desktop
+  - ~/Downloads
+dest_root: ~/Organized
+ambiguous_folder: _Unsorted
+code_folder: Code
+skip_hidden: true
+move_other_dirs: false
+
+# Keep a config and the relative paths it references together as one move
+# (firebase.json + functions/ + firestore.rules, etc.). Add your own anchors.
+bundle_configs: true
+anchor_configs: []   # e.g. [my-tool.json, render.yaml]
+
+# A folder is a "code project" if it contains any of these (names or globs).
+project_markers: [.git, package.json, "*.xcodeproj", "*.xcworkspace", build.gradle, Cargo.toml, go.mod, pyproject.toml]
+
+categories:
+  - {name: Documents,     extensions: [pdf, doc, docx, txt, md, rtf, pages]}
+  - {name: Spreadsheets,  extensions: [xls, xlsx, csv, numbers]}
+  - {name: Presentations, extensions: [ppt, pptx, key]}
+  - {name: Images,        extensions: [png, jpg, jpeg, gif, webp, heic, svg]}
+  - {name: Audio,         extensions: [mp3, m4a, wav, flac, aac]}
+  - {name: Video,         extensions: [mp4, mov, mkv, avi, m4v]}
+  - {name: Archives,      extensions: [zip, tar, gz, rar, 7z, dmg]}
+
+# Route by filename keyword (overrides extension). Tailor these per project.
+keyword_routes:
+  # - {keyword: invoice, folder: Documents/Finance}
+  # - {keyword: screenshot, folder: Images/Screenshots}
+
+junk:
+  patterns: ["*.crdownload", "*.part", "*.download", "*.tmp", ".DS_Store", "Thumbs.db", "desktop.ini"]
+  trash_empty_dirs: true
+  trash_empty_files: true
+
+ignore: [_Unsorted, Code, Organized, .declutter]
