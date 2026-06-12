@@ -20,19 +20,49 @@ from .organize import execute, list_manifests, undo
 from .scan import scan, summarize
 from .trash import HAVE_SEND2TRASH
 
+
+# Make console output safe everywhere. On Windows a live console handles
+# Unicode fine, but when stdout is redirected or piped it falls back to the
+# locale codepage (often cp1252) and printing emoji/box-drawing characters
+# raises UnicodeEncodeError. Prefer UTF-8; if the stream can't be coerced,
+# fall back to ASCII glyphs so a decorative character never crashes a command.
+def _make_console_safe() -> None:
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            try:
+                reconfigure(encoding="utf-8", errors="backslashreplace")
+            except (ValueError, OSError):  # pragma: no cover - exotic streams
+                pass
+
+
+_make_console_safe()
+
+
+def _supports_unicode() -> bool:
+    enc = (getattr(sys.stdout, "encoding", None) or "").lower()
+    return "utf" in enc
+
+
+# Decorative glyphs, with ASCII fallbacks for codepages that can't encode them.
+if _supports_unicode():
+    _DOT, _SPARK, _WAVE, _ARROW, _ELLIPSIS = "·", "✨", " 👋", "->", "…"
+else:
+    _DOT, _SPARK, _WAVE, _ARROW, _ELLIPSIS = "-", "", "", "->", "..."
+
 BANNER = r"""
   ____            _       _   _
  |  _ \  ___  ___| |_   _| |_| |_ ___ _ __
  | | | |/ _ \/ __| | | | | __| __/ _ \ '__|
  | |_| |  __/ (__| | |_| | |_| ||  __/ |
- |____/ \___|\___|_|\__,_|\__|\__\___|_|   v%s
-   safe · reversible · cross-platform
-""" % __version__
+ |____/ \___|\___|_|\__,_|\__|\__\___|_|   v{ver}
+   safe {dot} reversible {dot} cross-platform
+""".format(ver=__version__, dot=_DOT)
 
 
 def _print_plan(actions, cfg) -> None:
     if not actions:
-        print("  Nothing to do — everything is already tidy. ✨")
+        print(f"  Nothing to do - everything is already tidy. {_SPARK}".rstrip())
         return
     counts = summarize(actions)
     dest = expand(cfg["dest_root"])
@@ -46,7 +76,7 @@ def _print_plan(actions, cfg) -> None:
         else:
             print(f"    {a.category:<12} {Path(a.src).name}")
     if len(actions) > 12:
-        print(f"    … and {len(actions) - 12} more")
+        print(f"    {_ELLIPSIS} and {len(actions) - 12} more")
     if not HAVE_SEND2TRASH:
         print("\n  Note: `send2trash` not installed — junk goes to a recoverable")
         print("  quarantine under <dest>/.declutter/quarantine (restore via undo).")
@@ -115,7 +145,7 @@ def menu(cfg, cfg_path) -> None:
             target = input("  Path [declutter.yaml]: ").strip() or "declutter.yaml"
             cmd_init(target)
         elif choice in ("q", "quit", "exit"):
-            print("  Bye 👋")
+            print(f"  Bye{_WAVE}")
             return
         else:
             print("  Unknown choice.")

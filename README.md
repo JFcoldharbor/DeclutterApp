@@ -72,6 +72,24 @@ text scan for others), and moves the whole set together into one
 `.firebaserc` / `.env` ride along. Toggle with `bundle_configs`; add your own
 anchors with `anchor_configs: [my-tool.json]`.
 
+## Windows notes
+
+Declutter runs natively on Windows — the engine is pure `pathlib`/`shutil`, and
+junk recognition already covers `Thumbs.db` and `desktop.ini`. Two things worth
+knowing:
+
+- **Real Recycle Bin needs the `[full]` extra.** Plain `pip install declutter-cli`
+  uses the recoverable quarantine (still safe, still `undo`-able). Install
+  `"declutter-cli[full]"` to send junk to the actual Windows Recycle Bin via
+  `send2trash`.
+- **OneDrive-redirected folders.** On many Windows machines, Desktop and Downloads
+  are redirected into OneDrive (`%USERPROFILE%\OneDrive\Desktop`), so the default
+  `sources: [~/Desktop, ~/Downloads]` may point at the wrong place. If a scan finds
+  nothing, set `sources` explicitly in your config to the real paths.
+
+Console output auto-selects UTF-8 and degrades to ASCII when a stream can't encode
+it, so redirecting or piping output (`declutter scan > out.txt`) won't crash.
+
 ## Configure
 
 All rules live in a YAML (or JSON) file — no personal data is baked in.
